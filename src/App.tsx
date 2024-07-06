@@ -1,5 +1,4 @@
 import { ChangeEvent, FC, useEffect, useState } from 'react';
-import './App.css';
 
 const App: FC = () => {
   /**
@@ -18,11 +17,10 @@ const App: FC = () => {
   };
   const [isSupported] = useState<boolean>(isNFCSupported());
   const [message, setMessage] = useState<string>('');
-  const [point, setPoint] = useState<number>(0);
+  const [point, setPoint] = useState<number>(1);
   const [status, setStatus] = useState<string>('');
-  const [errors, setErrors] = useState<{ message?: string; point?: string }>({});
 
-  const handleMessageChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleMessageChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.currentTarget.value);
   };
 
@@ -38,14 +36,16 @@ const App: FC = () => {
     if (point < 1 || point > 1000) {
       newErrors.point = 'ポイントは1から1000の間でなければなりません';
     }
-    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const writeToNFC = async () => {
     if (!validateForm()) return;
 
-    const jsonData = `{message:"${message.trim()}",point:${point}}`;
+    const jsonData = `{
+    "point": ${point},
+    "message": "${message.trim()}"
+  }`;
 
     try {
       if (isSupported) {
@@ -60,51 +60,90 @@ const App: FC = () => {
           ],
         });
         setStatus('NFCタグに正常に書き込みました！');
+        setTimeout(() => {
+          setStatus('');
+        }, 3000);
       } else {
         setStatus('お使いのブラウザはWebNFCをサポートしていません。');
       }
     } catch (error) {
       setStatus(`エラーが発生しました: ${error}`);
+      setTimeout(() => {
+        setStatus('');
+      }, 3000);
     }
   };
 
   useEffect(() => {
     writeToNFC();
+    console.log('message:', message);
+    console.log('point:', point);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [message, point]);
 
   return (
-    <div className="p-4">
-      <div className={`h-2 ${isSupported ? 'bg-green-500' : 'bg-red-500'}`}></div>
-      <h1 className={`text-2xl font-bold mb-4 ${isSupported ? 'text-green-500' : 'text-red-500'}`}>
-        WebNFC JSON Writer
-      </h1>
-      <p className="text-gray-500">バージョン: 1.0.6</p>
-      <form className="space-y-4">
+    <div className="p-16 bg-gradient-to-r from-green-100 to-green-200 rounded-lg shadow-2xl">
+      <div className={`h-8 ${isSupported ? 'bg-green-500' : 'bg-red-500'} rounded-full`}></div>
+      <p className="text-gray-700 text-2xl font-bold mt-4">
+        投げエール
+        <span className="text-sm">(v1.1.1)</span>
+      </p>
+      <form className="space-y-12 mt-8">
         <div>
-          <label htmlFor="message" className="block mb-1">
+          <label htmlFor="message" className="block mb-4 text-2xl font-semibold text-green-700">
             メッセージ:
           </label>
-          <input id="message" value={message} onChange={handleMessageChange} className="w-full p-2 border rounded" />
-          {errors.message && <p className="text-red-500">{errors.message}</p>}
+          <textarea
+            id="message"
+            value={message}
+            onChange={handleMessageChange}
+            className="w-full p-4 border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="ここにメッセージを入力"
+            rows={4}
+          />
         </div>
         <div>
-          <label htmlFor="point" className="block mb-1">
-            ポイント:
+          <label htmlFor="point" className="block mb-4 text-2xl font-semibold text-green-700">
+            応援:
           </label>
-          <input
-            id="point"
-            type="number"
-            value={point}
-            onChange={handlePointChange}
-            className="w-full p-2 border rounded"
-          />
-          {errors.point && <p className="text-red-500">{errors.point}</p>}
+          <div className="relative">
+            <input
+              id="point"
+              type="range"
+              min="1"
+              max="1000"
+              value={point}
+              onChange={handlePointChange}
+              className="w-full appearance-none h-8 bg-gradient-to-r from-blue-200 to-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              style={{ background: 'transparent' }}
+            />
+            <div
+              className="absolute top-0 left-0 w-full h-full pointer-events-none"
+              style={{
+                background: `linear-gradient(to right, #ff69b4 ${((point - 1) / 999) * 100}%, transparent ${
+                  ((point - 1) / 999) * 100
+                }%)`,
+              }}
+            >
+              <span
+                className="absolute text-4xl"
+                style={{
+                  left: `${((point - 1) / 999) * 100}%`,
+                  transform: 'translateX(-50%)',
+                  pointerEvents: 'none',
+                }}
+                role="img"
+                aria-label="thumbs up"
+              >
+                👍
+              </span>
+            </div>
+          </div>
         </div>
       </form>
       {status && (
-        <div className="mt-4 p-4 border rounded bg-gray-100">
-          <p>{status}</p>
+        <div className="mt-12 p-12 border-4 border-gray-300 rounded-lg bg-gray-200 shadow-inner">
+          <p className="text-2xl font-semibold text-gray-800">{status}</p>
         </div>
       )}
     </div>
