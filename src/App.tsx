@@ -115,7 +115,7 @@ const App: FC = () => {
               value={point}
               onChange={handlePointChange}
               className="w-full appearance-none h-8 bg-gradient-to-r from-blue-200 to-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              style={{ background: 'transparent' }}
+              style={{ background: `linear-gradient(to right, #ff69b4 ${((point - 1) / 999) * 100}%, transparent ${((point - 1) / 999) * 100}%)` }}
             />
             <div
               className="absolute top-0 left-0 w-full h-full pointer-events-none"
